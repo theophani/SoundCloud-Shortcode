@@ -3,7 +3,7 @@ Contributors: jowagener
 Donate link: http://soundcloud.com
 Tags: soundcloud, flash, player, shortcode,
 Requires at least: 2.5.0
-Tested up to: 2.8.1
+Tested up to: 3.0.4
 Stable tag: trunk
 
 The SoundCloud Shortcode plugin allows you to integrate a player widget from SoundCloud into your Wordpress Blog by using a Wordpress shortcodes.
