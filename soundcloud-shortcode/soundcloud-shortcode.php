@@ -74,6 +74,11 @@ function soundcloud_shortcode( $atts, $url='' ) {
                             $height = "81";
                      }
               }
+              
+              if ($params == '') {
+                    $params = soundcloud_build_params_string();
+              }
+              
               $player_params = "url=$encoded_url&g=1&$params";
               
               preg_match('/(.+\.)?(((staging|sandbox)-)?soundcloud\.com)/', $url['host'], $matches);
@@ -90,4 +95,101 @@ function soundcloud_shortcode( $atts, $url='' ) {
                      esc_attr( $width ) . "\"> </embed> </object>";
       }
 }
+
+
+add_action('admin_menu', 'soundcloud_shortcode_options_menu');
+
+function soundcloud_shortcode_options_menu() {
+       add_options_page('SoundCloud Options', 'SoundCloud', 'manage_options', 'soundcloud-shortcode', 'soundcloud_shortcode_options');
+       add_action( 'admin_init', 'register_soundcloud_settings' );
+}
+
+function register_soundcloud_settings() {
+       //register our settings
+       register_setting( 'soundcloud-settings', 'soundcloud_auto_play' );
+       register_setting( 'soundcloud-settings', 'soundcloud_show_comments ' );
+       register_setting( 'soundcloud-settings', 'soundcloud_color' );
+       register_setting( 'soundcloud-settings', 'soundcloud_theme_color' );
+}
+
+function soundcloud_build_params_string( $params='' ) {
+       $params .=  'auto_play='     . get_option( 'soundcloud_auto_play', '' );
+       $params .= '&show_comments=' . get_option( 'soundcloud_show_comments ', '' );
+       $params .= '&color='         . get_option( 'soundcloud_color', '' );
+       $params .= '&theme_color='   . get_option( 'soundcloud_theme_color', '' );
+       return $params;
+}
+
+function soundcloud_shortcode_options() {
+       if (!current_user_can('manage_options'))  {
+              wp_die( __('You do not have sufficient permissions to access this page.') );
+       }
+       
+// auto_play = (true or false)
+// show_comments = (true or false)
+// color = (color hex code) will paint the play button, waveform and selections in this color
+// theme_color = (color hex code) will set the background color
+       
+?>
+<div class="wrap">
+<h2>SoundCloud Shortcode</h2>
+<p>These settings will become the new defaults used by the SoundCloud Shortcode throughout your blog.</p>    
+<p>You can always override these settings on a per-shortcode basis. Setting the 'params' attribute in a shortcode overrides all these defaults combined.</p>
+
+<form method="post" action="options.php">
+    <?php settings_fields( 'soundcloud-settings' ); ?>
+    <table class="form-table">
+      
+        <tr valign="top">
+        <th scope="row">Current Default 'params'</th>
+        <td>
+            <?php echo soundcloud_build_params_string(); ?>
+        </td>
+        </tr>
+      
+        <tr valign="top">
+        <th scope="row">Auto Play</th>
+        <td>
+             <label for="auto_play_none"  style="margin-right: 1em;"><input type="radio" id="auto_play_none"  name="soundcloud_auto_play" value=""      <?php if (get_option('soundcloud_auto_play') == '')      echo 'checked'; ?> />Default</label>
+             <label for="auto_play_true"  style="margin-right: 1em;"><input type="radio" id="auto_play_true"  name="soundcloud_auto_play" value="true"  <?php if (get_option('soundcloud_auto_play') == 'true')  echo 'checked'; ?> />True</label>
+             <label for="auto_play_false" style="margin-right: 1em;"><input type="radio" id="auto_play_false" name="soundcloud_auto_play" value="false" <?php if (get_option('soundcloud_auto_play') == 'false') echo 'checked'; ?> />False</label>
+        </td>
+        </tr>
+         
+        <tr valign="top">
+        <th scope="row">Show Comments</th>
+        <td>
+             <label for="show_comments_none"  style="margin-right: 1em;"><input type="radio" id="show_comments_none"  name="soundcloud_show_comments" value=""      <?php if (get_option('soundcloud_show_comments') == '')      echo 'checked'; ?> />Default</label>
+             <label for="show_comments_true"  style="margin-right: 1em;"><input type="radio" id="show_comments_true"  name="soundcloud_show_comments" value="true"  <?php if (get_option('soundcloud_show_comments') == 'true')  echo 'checked'; ?> />True</label>
+             <label for="show_comments_false" style="margin-right: 1em;"><input type="radio" id="show_comments_false" name="soundcloud_show_comments" value="false" <?php if (get_option('soundcloud_show_comments') == 'false') echo 'checked'; ?> />False</label>
+        </tr>
+        
+        <tr valign="top">
+        <th scope="row">Color</th>
+        <td>
+          <input type="text" name="soundcloud_color" value="<?php echo get_option('soundcloud_color'); ?>" /> (color hex code e.g. ff6699)<br />
+          Defines the color to paint the play button, waveform and selections.
+        </td>
+        </tr>
+        
+        <tr valign="top">
+        <th scope="row">Theme Color</th>
+        <td>
+          <input type="text" name="soundcloud_theme_color" value="<?php echo get_option('soundcloud_theme_color'); ?>" /> (color hex code e.g. ff6699)<br />
+          Defines the background color of the player.          
+        </td>
+        </tr>
+
+    </table>
+    
+    <p class="submit">
+    <input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
+    </p>
+
+</form>
+</div>
+<?php
+       
+}
+
 ?>
