@@ -33,7 +33,7 @@ Embeds a set player with a green theme.
 Embeds a group player with 150px height and 250px width. 
 
 
-When posting the standard soundcloud embed code, the plugin tries to replace it with a shortcode.
+When posting the standard SoundCloud embed code, the plugin tries to replace it with a shortcode.
 == Installation ==
 
 
@@ -43,9 +43,12 @@ When posting the standard soundcloud embed code, the plugin tries to replace it 
 
 == Screenshots ==
 
-1. This is how the player looks like.
+1. This is how the player looks.
 
 == Changelog ==
+= 1.2 = 
+* Added options page to allow blog-wide global default settings.
+
 = 1.1.9 = 
 * Fix to support resources from api.soundcloud.com
 * Security enhancement. Only support players from player.soundcloud.com, player.sandbox-soundcloud.com and player.staging-soundcloud.com

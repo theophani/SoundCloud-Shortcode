@@ -3,7 +3,7 @@
 Plugin Name: SoundCloud Shortcode
 Plugin URI: http://www.soundcloud.com
 Description: SoundCloud Shortcode. Usage in your posts: [soundcloud]http://soundcloud.com/TRACK_PERMALINK[/soundcloud] . Works also with set or group instead of track. You can provide optional parameters height/width/params as follows [soundcloud height="82" params="auto_play=true"]http....
-Version: 1.1.9
+Version: 1.2
 Author: Johannes Wagener <johannes@soundcloud.com>
 Author URI: http://johannes.wagener.cc
 */
@@ -11,6 +11,7 @@ Author URI: http://johannes.wagener.cc
 /*
 SoundCloud Shortcode (Wordpress Plugin)
 Copyright (C) 2009 Johannes Wagener
+Options support added by Tiffany Conroy <tif@tif.ca>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -100,6 +101,14 @@ function soundcloud_shortcode( $atts, $url='' ) {
 }
 
 
+// Add settings link on plugin page
+function soundcloud_settings_link($links) { 
+  $settings_link = '<a href="options-general.php?page=soundcloud-shortcode">Settings</a>';
+  array_unshift($links, $settings_link);
+  return $links; 
+}
+add_filter("plugin_action_links_".plugin_basename(__FILE__), 'soundcloud_settings_link' );
+
 add_action('admin_menu', 'soundcloud_shortcode_options_menu');
 
 function soundcloud_shortcode_options_menu() {
@@ -132,14 +141,9 @@ function soundcloud_shortcode_options() {
               wp_die( __('You do not have sufficient permissions to access this page.') );
        }
 
-// auto_play = (true or false)
-// show_comments = (true or false)
-// color = (color hex code) will paint the play button, waveform and selections in this color
-// theme_color = (color hex code) will set the background color
-
 ?>
 <div class="wrap">
-<h2>SoundCloud Shortcode</h2>
+<h2>SoundCloud Shortcode Default Settings</h2>
 <p>These settings will become the new defaults used by the SoundCloud Shortcode throughout your blog.</p>
 <p>You can always override these settings on a per-shortcode basis. Setting the 'params' attribute in a shortcode overrides all these defaults combined.</p>
 
