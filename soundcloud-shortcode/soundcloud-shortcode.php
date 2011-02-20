@@ -97,7 +97,8 @@ function soundcloud_shortcode( $atts, $url='' ) {
                      "/player.swf?" . esc_attr( $player_params ) .
                      "\" type=\"application/x-shockwave-flash\" width=\"" .
                      esc_attr( $width ) . "\"> </embed> " .
-                     "<a href='http://soundcloud.com".$url['path']."' target='_blank'>Listen on SoundCloud</a>" .
+                     "<a href='http://soundcloud.com" . $url['path'] .
+                     "' target='_blank'>Listen on SoundCloud</a>" .
                      " </object>";
       }
 }
