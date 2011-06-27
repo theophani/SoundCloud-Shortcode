@@ -11,9 +11,12 @@ The SoundCloud Shortcode plugin allows you to integrate a player widget from Sou
 == Description ==
 
 The SoundCloud Shortcode plugin allows you to easily integrate a player widget for a track, set or group from SoundCloud into your Wordpress Blog by using a Wordpress shortcode.
+
 Use it like that in your blog post: `[soundcloud]http://soundcloud.com/LINK_TO_TRACK_SET_OR_GROUP[/soundcloud]`
-It also supports these optional parameters: width, height and params.
+It also supports these optional parameters: width, height, params and useoembed.
+
 The "params" parameter will pass the given options on to the player widget.
+
 Our player accepts the following parameter options:
 
 * auto_play = (true or false)
@@ -35,7 +38,14 @@ Embeds a group player with 150px height and 250px width.
 
 When posting the standard SoundCloud embed code, the plugin tries to replace it with a shortcode.
 
-The oembed option loads the most recent widget code directly from SoundCloud. Some caching plugins may prevent the latest widgets from being fetched from SoundCloud on older posts.
+About oEmbed:
+
+oEmbed fetches the most recent widget code directly from SoundCloud, rather than using the legacy widget embed code.
+
+In this version of the plugin, oEmbed is opt-in: the recommended setting is "true", but the default setting is "false". If you experience any problems with "true", revert to "default" or "false" and report bugs to SoundCloud.
+
+Note: Some caching plugins may prevent the latest widget code from being fetched from SoundCloud.
+
 
 == Installation ==
 
@@ -52,7 +62,7 @@ The oembed option loads the most recent widget code directly from SoundCloud. So
 == Changelog ==
 
 = 1.2.2 =
-* Now uses oEmbed to get the embed code from SoundCloud, which is more future-proof.
+* Added the option to use oEmbed
 
 = 1.2.1 =
 * Removed flash fallback HTML

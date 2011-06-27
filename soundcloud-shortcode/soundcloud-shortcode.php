@@ -3,7 +3,7 @@
 Plugin Name: SoundCloud Shortcode
 Plugin URI: http://www.soundcloud.com
 Description: SoundCloud Shortcode. Usage in your posts: [soundcloud]http://soundcloud.com/TRACK_PERMALINK[/soundcloud] . Works also with set or group instead of track. You can provide optional parameters height/width/params as follows [soundcloud height="82" params="auto_play=true"]http....
-Version: 1.2.1
+Version: 1.2.2
 Author: Johannes Wagener <johannes@soundcloud.com>
 Author URI: http://johannes.wagener.cc
 */
@@ -11,7 +11,7 @@ Author URI: http://johannes.wagener.cc
 /*
 SoundCloud Shortcode (Wordpress Plugin)
 Copyright (C) 2009 Johannes Wagener
-Options support added by Tiffany Conroy <tif@tif.ca>
+Options support and oEmbed added by Tiffany Conroy <tif@tif.ca>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -52,13 +52,15 @@ function soundcloud_shortcode( $atts, $url='' ) {
                      'url' => '',
                      'params' => soundcloud_build_params_string(),
                      'height' => '',
-                     'width'  => ''
+                     'width'  => '',
+                     'useoembed' => ''
               ), $atts ) );
        } else {
               extract(shortcode_atts(array(
                      'params' => soundcloud_build_params_string(),
                      'height' => '',
-                     'width'  => ''
+                     'width'  => '',
+                     'useoembed' => ''
               ), $atts ) );
        }
 
@@ -83,29 +85,59 @@ function soundcloud_shortcode( $atts, $url='' ) {
                       if (!$width || $width == '') $width =  '100%';
               }
 
-              $player_params = "url=$encoded_url&g=1&$params";
+              if ( $useoembed == '' ) {
+                      $useoembed = get_option('soundcloud_use_oembed');
+                      if (!$useoembed || $useoembed == '') $useoembed =  'false';
+              }
 
-              preg_match('/(.+\.)?(((staging|sandbox)-)?soundcloud\.com)/', $url['host'], $matches);
-              $player_host = "player." . $matches[2];
+              $player_params = "url=$encoded_url&$params";
 
-              return "<object height=\"" . esc_attr( $height ) . "\" width=\"" .
-                     esc_attr( $width ) . "\"><param name=\"movie\" value=\"http://" .
-                     esc_attr( $player_host ) . "/player.swf?" . esc_attr( $player_params ) .
-                     "\"></param><param name=\"allowscriptaccess\"
-                     value=\"always\"></param><embed allowscriptaccess=\"always\" height=\"" .
-                     esc_attr( $height ) . "\" src=\"http://" . esc_attr( $player_host ) .
-                     "/player.swf?" . esc_attr( $player_params ) .
-                     "\" type=\"application/x-shockwave-flash\" width=\"" .
-                     esc_attr( $width ) . "\"> </embed></object>";
+
+              if ( $useoembed == 'true' ) {
+                preg_match('/(.+\.)?(((staging|sandbox)-)?soundcloud\.com)/', $url['host'], $matches);
+                $player_host = "" . $matches[2];
+
+                $path_sc_xml = 'http://' . esc_attr( $player_host ) . '/oembed?' . esc_attr( $player_params ) .'&format=xml';
+
+                $sc_xml = simplexml_load_file($path_sc_xml, null, LIBXML_NOCDATA);
+                $widget_html = strip_cdata($sc_xml->html);
+
+                $output = "<div class='soundcloud-widget-wrapper'>$widget_html</div>";
+
+              } else {
+
+                preg_match('/(.+\.)?(((staging|sandbox)-)?soundcloud\.com)/', $url['host'], $matches);
+                $player_host = "player." . $matches[2];
+
+                $output = "<object height=\"" . esc_attr( $height ) . "\" width=\"" .
+                       esc_attr( $width ) . "\"><param name=\"movie\" value=\"http://" .
+                       esc_attr( $player_host ) . "/player.swf?" . esc_attr( $player_params ) .
+                       "\"></param><param name=\"allowscriptaccess\"
+                       value=\"always\"></param><embed allowscriptaccess=\"always\" height=\"" .
+                       esc_attr( $height ) . "\" src=\"http://" . esc_attr( $player_host ) .
+                       "/player.swf?" . esc_attr( $player_params ) .
+                       "\" type=\"application/x-shockwave-flash\" width=\"" .
+                       esc_attr( $width ) . "\"> </embed></object>";
+
+              }
+
+              return $output;
+
       }
+}
+
+// used for extracting the widget HTML from the oEmbed result
+function strip_cdata($string) {
+    preg_match_all('/<!\[cdata\[(.*?)\]\]>/is', $string, $matches);
+    return str_replace($matches[0], $matches[1], $string);
 }
 
 
 // Add settings link on plugin page
-function soundcloud_settings_link($links) { 
+function soundcloud_settings_link($links) {
   $settings_link = '<a href="options-general.php?page=soundcloud-shortcode">Settings</a>';
   array_unshift($links, $settings_link);
-  return $links; 
+  return $links;
 }
 add_filter("plugin_action_links_".plugin_basename(__FILE__), 'soundcloud_settings_link' );
 
@@ -125,6 +157,7 @@ function register_soundcloud_settings() {
        register_setting( 'soundcloud-settings', 'soundcloud_show_comments ' );
        register_setting( 'soundcloud-settings', 'soundcloud_color' );
        register_setting( 'soundcloud-settings', 'soundcloud_theme_color' );
+       register_setting( 'soundcloud-settings', 'soundcloud_use_oembed' );
 }
 
 function soundcloud_build_params_string() {
@@ -166,7 +199,7 @@ function soundcloud_shortcode_options() {
           Leave blank to use the default, 225 (pixels).
         </td>
         </tr>
-        
+
         <tr valign="top">
         <th scope="row">Player Width</th>
         <td>
@@ -198,6 +231,7 @@ function soundcloud_shortcode_options() {
              <label for="show_comments_none"  style="margin-right: 1em;"><input type="radio" id="show_comments_none"  name="soundcloud_show_comments" value=""      <?php if (get_option('soundcloud_show_comments') == '')      echo 'checked'; ?> />Default</label>
              <label for="show_comments_true"  style="margin-right: 1em;"><input type="radio" id="show_comments_true"  name="soundcloud_show_comments" value="true"  <?php if (get_option('soundcloud_show_comments') == 'true')  echo 'checked'; ?> />True</label>
              <label for="show_comments_false" style="margin-right: 1em;"><input type="radio" id="show_comments_false" name="soundcloud_show_comments" value="false" <?php if (get_option('soundcloud_show_comments') == 'false') echo 'checked'; ?> />False</label>
+        </td>
         </tr>
 
         <tr valign="top">
@@ -213,6 +247,17 @@ function soundcloud_shortcode_options() {
         <td>
           <input type="text" name="soundcloud_theme_color" value="<?php echo get_option('soundcloud_theme_color'); ?>" /> (color hex code e.g. ff6699)<br />
           Defines the background color of the player.
+        </td>
+        </tr>
+
+        <tr valign="top">
+        <th scope="row">Use oEmbed</th>
+        <td>
+          <label for="use_oembed_none"  style="margin-right: 1em;"><input type="radio" id="use_oembed_none"  name="soundcloud_use_oembed" value=""      <?php if (get_option('soundcloud_use_oembed') == '')      echo 'checked'; ?> />Default</label>
+          <label for="use_oembed_true"  style="margin-right: 1em;"><input type="radio" id="use_oembed_true"  name="soundcloud_use_oembed" value="true"  <?php if (get_option('soundcloud_use_oembed') == 'true')  echo 'checked'; ?> />True</label>
+          <label for="use_oembed_false" style="margin-right: 1em;"><input type="radio" id="use_oembed_false" name="soundcloud_use_oembed" value="false" <?php if (get_option('soundcloud_use_oembed') == 'false') echo 'checked'; ?> />False</label>
+          <br />
+          Recommended is "True". For details, refer to the readme.txt
         </td>
         </tr>
 
